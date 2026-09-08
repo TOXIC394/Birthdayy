@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Homie! 🎉</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 40%, #e0e7ff 100%);
+    }
+    .font-heading {
+      font-family: 'Fredoka', cursive;
+    }
+    
+    /* Candle Flame Animation */
+    @keyframes flicker {
+      0%, 100% { transform: scale(1) rotate(-1deg); opacity: 0.9; }
+      50% { transform: scale(1.15) rotate(1deg); opacity: 1; }
+    }
+    .flame {
+      animation: flicker 0.5s infinite ease-in-out;
+      transform-origin: center bottom;
+    }
+
+    /* Floating Animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+    .floating-card {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    /* Glassmorphism */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+    }
+
+    .gift-box-card {
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .gift-box-card:hover {
+      transform: translateY(-8px) scale(1.02);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-20 relative overflow-x-hidden">
+
+  <!-- Floating Decorative Elements -->
+  <div class="fixed top-10 left-5 text-4xl opacity-30 pointer-events-none select-none floating-card">🎈</div>
+  <div class="fixed top-1/3 right-8 text-4xl opacity-30 pointer-events-none select-none floating-card" style="animation-delay: 1s;">✨</div>
+  <div class="fixed bottom-20 left-10 text-4xl opacity-30 pointer-events-none select-none floating-card" style="animation-delay: 2s;">🎁</div>
+  <div class="fixed top-2/3 right-5 text-4xl opacity-30 pointer-events-none select-none floating-card" style="animation-delay: 1.5s;">💙</div>
+
+  <!-- ================= STEP 1: LOGIN PAGE ================= -->
+  <div id="loginSection" class="min-h-screen flex items-center justify-center px-4 relative z-50">
+    <div class="glass-panel max-w-md w-full rounded-3xl p-8 shadow-2xl text-center border border-white/80 relative overflow-hidden">
+      
+      <div class="w-16 h-16 bg-gradient-to-tr from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white shadow-lg shadow-sky-500/30 floating-card">
+        <i data-lucide="lock" class="w-8 h-8"></i>
+      </div>
+
+      <h1 class="font-heading text-3xl font-bold text-slate-800 mb-2">Secret Homie Portal 🔐</h1>
+      <p class="text-slate-500 text-sm mb-6">Enter the secret homie passkey to unlock your birthday surprise site!</p>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <input 
+            type="password" 
+            id="passkeyInput" 
+            placeholder="Enter Passkey" 
+            class="w-full px-5 py-3.5 rounded-2xl bg-white/90 border border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500 text-center font-bold tracking-widest placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 shadow-inner"
+            required
+          />
+        </div>
+        
+        <p id="loginError" class="text-rose-500 text-xs font-semibold hidden">Oops! Incorrect passkey. Try "homie"!</p>
+
+        <button 
+          type="submit" 
+          class="w-full py-3.5 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/25 transition-all active:scale-95 flex items-center justify-center gap-2"
+        >
+          <span>Unlock Birthday Surprise</span>
+          <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-slate-200/60 flex flex-col items-center gap-2">
+        <span class="text-xs text-slate-400">Hint: Passkey is <code class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded font-mono">homie</code></span>
+        <button onclick="quickUnlock()" class="text-xs text-sky-600 hover:underline font-semibold">⚡ Quick Unlock Button</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER (Hidden until login) -->
+  <div id="mainApp" class="hidden">
+    
+    <!-- Header & Audio Toggle -->
+    <header class="max-w-4xl mx-auto px-4 pt-6 flex justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <div class="p-2 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <span class="font-heading text-xl text-blue-600 font-bold tracking-wide hidden sm:inline">Homie HQ 🎉</span>
+      </div>
+      
+      <!-- Top Navigation Tabs -->
+      <nav class="flex bg-white/70 backdrop-blur rounded-full p-1 border border-blue-100 shadow-sm">
+        <button id="navMainBtn" onclick="switchPage('main')" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-blue-600 text-white shadow-sm">
+          Celebration 🎂
+        </button>
+        <button id="navMemoriesBtn" onclick="switchPage('memories')" class="px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-600 hover:text-blue-600 transition-all">
+          Memories ⏳
+        </button>
+        <button id="navGiftsBtn" onclick="switchPage('gifts')" class="px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-600 hover:text-blue-600 transition-all">
+          Gifts 🎁
+        </button>
+      </nav>
+
+      <button id="musicToggleBtn" class="flex items-center gap-2 px-3.5 py-2 bg-white/80 backdrop-blur rounded-full shadow-sm border border-blue-200 text-blue-600 font-semibold text-sm hover:bg-blue-50 transition-all active:scale-95">
+        <i data-lucide="music" id="musicIcon" class="w-4 h-4"></i>
+        <span id="musicText" class="hidden md:inline">Play Music</span>
+      </button>
+    </header>
+
+    <!-- ================= PAGE 1: CELEBRATION PAGE ================= -->
+    <div id="pageMain" class="space-y-8">
+      <main class="max-w-3xl mx-auto px-4 mt-8 space-y-8">
+        
+        <!-- Greeting Banner -->
+        <div class="glass-panel rounded-3xl p-8 text-center shadow-xl shadow-blue-500/5 relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500"></div>
+          
+          <span class="inline-block px-3.5 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-bold uppercase tracking-wider mb-3">VIP Access Granted</span>
+          
+          <h1 class="font-heading text-4xl md:text-6xl font-bold text-slate-800 leading-tight mb-4">
+            Happy Birthday, <br/>
+            <span class="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent">My Day One Homie!</span> 🎉
+          </h1>
+          
+          <p class="text-slate-600 max-w-lg mx-auto text-base md:text-lg">
+            To the absolute coolest person! Scroll down to bake your custom cake and blow out the candles!
+          </p>
+
+          <div class="mt-6 flex flex-wrap justify-center gap-3">
+            <button onclick="triggerConfetti()" class="px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-sky-500/30 flex items-center gap-2 transition-all active:scale-95">
+              <i data-lucide="party-popper" class="w-5 h-5"></i>
+              Blow Confetti!
+            </button>
+            <button onclick="switchPage('memories')" class="px-5 py-3 bg-white border border-sky-200 text-sky-700 hover:bg-sky-50 rounded-2xl font-bold shadow-sm flex items-center gap-2 transition-all active:scale-95">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+              Timeline
+            </button>
+            <button onclick="switchPage('gifts')" class="px-5 py-3 bg-white border border-sky-200 text-sky-700 hover:bg-sky-50 rounded-2xl font-bold shadow-sm flex items-center gap-2 transition-all active:scale-95">
+              <i data-lucide="gift" class="w-5 h-5"></i>
+              Gifts
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= CAKE BUILDER & CANDLE BLOWING ================= -->
+        <section class="glass-panel rounded-3xl p-8 shadow-xl shadow-blue-500/5 relative text-center">
+          
+          <!-- MODE A: BAKING INTERACTIVE STUDIO -->
+          <div id="cakeBuilderMode">
+            <div class="inline-flex p-2 bg-sky-100 text-sky-700 rounded-full text-xs font-bold uppercase tracking-wider mb-3 items-center gap-1">
+              <i data-lucide="chef-hat" class="w-4 h-4"></i> Step 1: Bake Your Cake
+            </div>
+            <h2 class="font-heading text-2xl md:text-3xl font-bold text-slate-800 mb-2">Design & Bake Your Birthday Cake! 🎂</h2>
+            <p class="text-slate-500 text-sm mb-6">Choose your favorite flavor, frosting, and toppings before lighting the candles!</p>
+
+            <!-- Cake Preview Canvas -->
+            <div class="relative w-56 h-48 mx-auto my-4 flex flex-col items-center justify-end">
+              <!-- Dynamic Cake Top Flavor Layer -->
+              <div id="previewTopLayer" class="w-40 h-12 bg-sky-300 rounded-t-3xl relative shadow-sm border-b-4 border-black/10 transition-colors duration-300 flex items-center justify-center">
+                <!-- Frosting Drops -->
+                <div class="absolute -top-2 w-full flex justify-around">
+                  <div id="previewDrip1" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                  <div id="previewDrip2" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                  <div id="previewDrip3" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                  <div id="previewDrip4" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                </div>
+                <span id="previewToppingIcon" class="text-xl z-10">👑</span>
+              </div>
+
+              <!-- Dynamic Cake Bottom Layer -->
+              <div id="previewBottomLayer" class="w-52 h-16 bg-blue-100 rounded-b-2xl shadow-lg border-t-2 border-blue-200/50 flex items-center justify-center transition-colors duration-300">
+                <div class="w-44 h-2 bg-white/40 rounded-full"></div>
+              </div>
+
+              <!-- Cake Plate -->
+              <div class="w-64 h-3 bg-slate-200 rounded-full shadow-sm mt-1"></div>
+            </div>
+
+            <!-- Customizer Controls -->
+            <div class="space-y-4 max-w-md mx-auto mt-6 text-left">
+              <!-- Cake Flavor -->
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">1. Choose Sponge Flavor</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button onclick="setCakeFlavor('vanilla', '#fef3c7', '#fde68a')" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-bold text-amber-800 text-center transition-all">
+                     Vanilla 🍦
+                  </button>
+                  <button onclick="setCakeFlavor('chocolate', '#78350f', '#451a03')" class="px-3 py-2 bg-amber-900/10 hover:bg-amber-900/20 border border-amber-900/20 rounded-xl text-xs font-bold text-amber-900 text-center transition-all">
+                     Chocolate 🍫
+                  </button>
+                  <button onclick="setCakeFlavor('blueberry', '#bfdbfe', '#93c5fd')" class="px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold text-blue-800 text-center transition-all">
+                     Blueberry 🫐
+                  </button>
+                </div>
+              </div>
+
+              <!-- Frosting Color -->
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">2. Choose Frosting</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button onclick="setFrosting('#38bdf8')" class="px-3 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-xl text-xs font-bold text-center">
+                     Ocean Blue 🌊
+                  </button>
+                  <button onclick="setFrosting('#818cf8')" class="px-3 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-xl text-xs font-bold text-center">
+                     Royal Purple 👑
+                  </button>
+                  <button onclick="setFrosting('#a7f3d0')" class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold text-center">
+                     Mint Crisp 🍃
+                  </button>
+                </div>
+              </div>
+
+              <!-- Toppings Selection -->
+              <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">3. Select Topping</label>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  <button onclick="setTopping('👑')" class="py-2.5 bg-white border border-slate-200 rounded-xl text-xl hover:bg-slate-50 flex items-center justify-center" title="Crown">👑</button>
+                  <button onclick="setTopping('⭐')" class="py-2.5 bg-white border border-slate-200 rounded-xl text-xl hover:bg-slate-50 flex items-center justify-center" title="Star">⭐</button>
+                  <button onclick="setTopping('🕯️')" class="py-2.5 bg-white border border-slate-200 rounded-xl text-xl hover:bg-slate-50 flex items-center justify-center" title="Candle">🕯️</button>
+                  <button onclick="setTopping('🌈')" class="py-2.5 bg-white border border-slate-200 rounded-xl text-xl hover:bg-slate-50 flex items-center justify-center" title="Rainbow">🌈</button>
+                  <button onclick="setTopping('💙')" class="py-2.5 bg-white border border-slate-200 rounded-xl text-xl hover:bg-slate-50 flex items-center justify-center" title="Heart">💙</button>
+                  <button onclick="setTopping('🎉')" class="py-2.5 bg-white border border-slate-200 rounded-xl text-xl hover:bg-slate-50 flex items-center justify-center" title="Party Popper">🎉</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bake Button -->
+            <button onclick="finishBakingCake()" class="mt-8 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-sky-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/25 hover:opacity-95 transition-all active:scale-95 inline-flex items-center gap-2">
+              <i data-lucide="flame" class="w-5 h-5"></i>
+              Bake & Light Candles!
+            </button>
+          </div>
+
+          <!-- MODE B: BLOW CANDLES SECTION -->
+          <div id="candleBlowMode" class="hidden">
+            <div class="inline-flex p-2 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-3 items-center gap-1">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> Step 2: Make A Wish
+            </div>
+            <h2 class="font-heading text-2xl md:text-3xl font-bold text-slate-800 mb-2">Blow Out The Candles! 🕯️</h2>
+            <p class="text-slate-500 text-sm mb-6">Click the "Blow Candles" button (or click each flame) to make your birthday wish!</p>
+
+            <!-- Baked Cake with Animated Candles -->
+            <div class="relative w-56 h-56 mx-auto my-4 flex flex-col items-center justify-end">
+              
+              <!-- Candles Layer -->
+              <div class="flex gap-4 mb-1 z-20" id="candlesContainer">
+                <div class="candle flex flex-col items-center cursor-pointer" onclick="toggleCandle(this)">
+                  <div class="flame w-3.5 h-6 bg-gradient-to-t from-amber-500 via-yellow-400 to-white rounded-full shadow-lg shadow-yellow-300"></div>
+                  <div class="w-2 h-10 bg-gradient-to-b from-sky-300 to-sky-400 rounded-sm"></div>
+                </div>
+                <div class="candle flex flex-col items-center cursor-pointer" onclick="toggleCandle(this)">
+                  <div class="flame w-3.5 h-6 bg-gradient-to-t from-amber-500 via-yellow-400 to-white rounded-full shadow-lg shadow-yellow-300"></div>
+                  <div class="w-2 h-12 bg-gradient-to-b from-blue-400 to-blue-500 rounded-sm"></div>
+                </div>
+                <div class="candle flex flex-col items-center cursor-pointer" onclick="toggleCandle(this)">
+                  <div class="flame w-3.5 h-6 bg-gradient-to-t from-amber-500 via-yellow-400 to-white rounded-full shadow-lg shadow-yellow-300"></div>
+                  <div class="w-2 h-10 bg-gradient-to-b from-indigo-300 to-indigo-400 rounded-sm"></div>
+                </div>
+              </div>
+
+              <!-- Custom Baked Cake Layers -->
+              <div id="bakedTopLayer" class="w-40 h-12 bg-sky-300 rounded-t-3xl relative shadow-sm border-b-4 border-black/10 flex items-center justify-center">
+                <div class="absolute -top-2 w-full flex justify-around">
+                  <div id="bakedDrip1" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                  <div id="bakedDrip2" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                  <div id="bakedDrip3" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                  <div id="bakedDrip4" class="w-5 h-4 bg-sky-400 rounded-full"></div>
+                </div>
+                <span id="bakedToppingIcon" class="text-xl z-10">👑</span>
+              </div>
+
+              <div id="bakedBottomLayer" class="w-52 h-16 bg-blue-100 rounded-b-2xl shadow-lg border-t-2 border-blue-200/50 flex items-center justify-center">
+                <div class="w-44 h-2 bg-white/40 rounded-full"></div>
+              </div>
+
+              <div class="w-64 h-3 bg-slate-200 rounded-full shadow-sm mt-1"></div>
+            </div>
+
+            <!-- Blow Actions -->
+            <div class="flex justify-center gap-3">
+              <button id="blowCandlesBtn" onclick="blowAllCandles()" class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl font-bold text-sm transition-all shadow-md active:scale-95 inline-flex items-center gap-2">
+                <i data-lucide="wind" class="w-5 h-5"></i>
+                Blow Out Candles 💨
+              </button>
+              <button onclick="rebakeCake()" class="px-4 py-3 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-2xl font-bold text-sm transition-all">
+                Re-design Cake 🎨
+              </button>
+            </div>
+
+            <!-- Wish Message Reveal -->
+            <div id="wishMessage" class="hidden mt-6 p-5 bg-sky-50 border border-sky-200 rounded-2xl text-center">
+              <p class="font-heading text-xl text-blue-700 font-bold">✨ Wish Sent To The Universe! ✨</p>
+              <p class="text-sm text-blue-600 mt-1">May all your grandest dreams and wildest ambitions come true this year!</p>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Heartfelt Letter Section -->
+        <section class="glass-panel rounded-3xl p-8 shadow-xl shadow-blue-500/5">
+          <h2 class="font-heading text-2xl font-bold text-slate-800 mb-3">A Letter For You 💌</h2>
+          <p class="text-slate-600 leading-relaxed text-sm md:text-base">
+            Dear Homie, <br/><br/>
+            On your special day, I wanted to take a moment to express how truly grateful I am to have you as a best friend. You bring so much energy, humor, and support into every situation. Thanks for always having my back through thick and thin.<br/><br/>
+            May this year bring you endless happiness, prosperity, success, and good health. Keep shining bright!
+          </p>
+          <div class="mt-4 pt-4 border-t border-slate-200/60 flex justify-between items-center text-xs text-slate-400">
+            <span>Written with 💙</span>
+            <span>Your Day One Homie</span>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ================= PAGE 2: NO-PHOTO MEMORIES & TIMELINE PAGE ================= -->
+    <div id="pageMemories" class="hidden max-w-4xl mx-auto px-4 mt-8">
+      <section class="glass-panel rounded-3xl p-8 shadow-xl shadow-blue-500/5">
+        <div class="text-center mb-8">
+          <span class="inline-block px-3.5 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2">Our Journey</span>
+          <h2 class="font-heading text-3xl font-bold text-slate-800">Homie Memory Timeline ⏳</h2>
+          <p class="text-slate-500 text-sm mt-1">No photos needed—our legendary moments speak for themselves!</p>
+        </div>
+
+        <!-- Timeline Cards List -->
+        <div class="relative border-l-2 border-sky-200 ml-4 md:ml-8 space-y-8 pl-6 my-6">
+          
+          <!-- Milestone 1 -->
+          <div class="relative group">
+            <div class="absolute -left-[31px] top-1.5 w-6 h-6 bg-sky-500 rounded-full border-4 border-white shadow-sm flex items-center justify-center text-white text-[10px]">
+              🚀
+            </div>
+            <div class="bg-white/90 p-5 rounded-2xl border border-sky-100 shadow-sm hover:shadow-md transition-all">
+              <span class="text-xs font-bold text-sky-600 bg-sky-50 px-2.5 py-1 rounded-md">Chapter 1</span>
+              <h3 class="font-bold text-slate-800 text-lg mt-2">The First Day We Met</h3>
+              <p class="text-slate-600 text-sm mt-1 leading-relaxed">
+                We instantly hit it off! From the very first conversation, it was obvious we shared the exact same chaotic energy and sense of humor.
+              </p>
+            </div>
+          </div>
+
+          <!-- Milestone 2 -->
+          <div class="relative group">
+            <div class="absolute -left-[31px] top-1.5 w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-sm flex items-center justify-center text-white text-[10px]">
+              🌙
+            </div>
+            <div class="bg-white/90 p-5 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md transition-all">
+              <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Chapter 2</span>
+              <h3 class="font-bold text-slate-800 text-lg mt-2">Late-Night Rants & Inside Jokes</h3>
+              <p class="text-slate-600 text-sm mt-1 leading-relaxed">
+                Those endless midnight phone calls and ridiculous jokes that no one else in the world understands. Truly an unbeatable bond!
+              </p>
+            </div>
+          </div>
+
+          <!-- Milestone 3 -->
+          <div class="relative group">
+            <div class="absolute -left-[31px] top-1.5 w-6 h-6 bg-indigo-600 rounded-full border-4 border-white shadow-sm flex items-center justify-center text-white text-[10px]">
+              ⭐
+            </div>
+            <div class="bg-white/90 p-5 rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md transition-all">
+              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Chapter 3</span>
+              <h3 class="font-bold text-slate-800 text-lg mt-2">Always Having Each Other's Back</h3>
+              <p class="text-slate-600 text-sm mt-1 leading-relaxed">
+                Through every victory, challenge, and crazy idea, we've stayed 100% loyal and supportive. Here's to countless chapters ahead!
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Interactive Memory Quote Card Generator -->
+        <div class="bg-gradient-to-r from-sky-500 to-blue-600 rounded-2xl p-6 text-white text-center shadow-lg mt-8">
+          <h3 class="font-heading text-xl font-bold mb-2">Favorite Homie Quote 💭</h3>
+          <p id="quoteDisplay" class="text-sm italic opacity-95 min-h-[48px] flex items-center justify-center">
+            "A good friend knows all your best stories, but a best friend has lived them with you!"
+          </p>
+          <button onclick="nextQuote()" class="mt-4 px-4 py-2 bg-white text-blue-600 font-bold text-xs rounded-xl shadow-md hover:bg-sky-50 transition-all active:scale-95 inline-flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Shuffle Memory Quote
+          </button>
+        </div>
+
+        <div class="mt-8 text-center">
+          <button onclick="switchPage('main')" class="text-xs font-bold text-sky-600 hover:underline inline-flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back To Celebration Studio
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= PAGE 3: SEPARATE GIFTS PAGE ================= -->
+    <div id="pageGifts" class="hidden max-w-4xl mx-auto px-4 mt-8">
+      <div class="glass-panel rounded-3xl p-8 shadow-xl shadow-blue-500/5">
+        <div class="text-center mb-8">
+          <span class="inline-block px-3.5 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2">Exclusive Rewards</span>
+          <h2 class="font-heading text-3xl md:text-4xl font-bold text-slate-800">Unwrap Your Birthday Gifts! 🎁</h2>
+          <p class="text-slate-500 text-sm mt-1">Tap on any gift card below to open your custom present and claim your reward!</p>
+        </div>
+
+        <!-- Distinct Gift Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Gift Card 1 (NEW: All-Night Gaming & Movie Pass) -->
+          <div class="gift-box-card bg-gradient-to-b from-sky-50 to-blue-100 border border-sky-200 p-6 rounded-3xl text-center flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div class="w-16 h-16 bg-sky-500 text-white rounded-2xl flex items-center justify-center text-3xl shadow-md mx-auto mb-4">
+              🎮
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-sky-600 uppercase tracking-widest bg-white/80 px-2.5 py-1 rounded-full border border-sky-100">Gift #1</span>
+              <h3 class="font-bold text-slate-800 text-lg mt-2 mb-1">All-Night Gaming & Movie Pass</h3>
+              <p class="text-xs text-slate-500 mb-6">Unlimited gaming, movie marathon & snack spree on me!</p>
+            </div>
+            <button onclick="openGiftModal('Voucher: Ultimate Gaming & Movie Night! 🎮🎬', 'This official pass entitles you to a full weekend session of multiplayer gaming, binging your favorite movies, and an all-you-can-eat snack haul sponsored 100% by me!')" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl shadow transition-all active:scale-95 flex items-center justify-center gap-1.5">
+              <span>Unwrap Gift</span> <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Gift Card 2 -->
+          <div class="gift-box-card bg-gradient-to-b from-blue-50 to-indigo-100 border border-blue-200 p-6 rounded-3xl text-center flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-3xl shadow-md mx-auto mb-4">
+              🏆
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-white/80 px-2.5 py-1 rounded-full border border-blue-100">Gift #2</span>
+              <h3 class="font-bold text-slate-800 text-lg mt-2 mb-1">Homie Of The Century</h3>
+              <p class="text-xs text-slate-500 mb-6">Official Trophy & VIP Title</p>
+            </div>
+            <button onclick="openGiftModal('Title Awarded: Homie Of The Century 🏆', 'Congratulations! You have officially won the award for being the most supportive, funniest, and most reliable best friend in existence.')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition-all active:scale-95 flex items-center justify-center gap-1.5">
+              <span>Unwrap Gift</span> <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Gift Card 3 -->
+          <div class="gift-box-card bg-gradient-to-b from-indigo-50 to-slate-100 border border-indigo-200 p-6 rounded-3xl text-center flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-3xl shadow-md mx-auto mb-4">
+              🤙
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-white/80 px-2.5 py-1 rounded-full border border-indigo-100">Gift #3</span>
+              <h3 class="font-bold text-slate-800 text-lg mt-2 mb-1">Life Contract</h3>
+              <p class="text-xs text-slate-500 mb-6">A secret 100% lifetime promise note</p>
+            </div>
+            <button onclick="openGiftModal('Lifetime Promise Contract 🤙', 'I promise to always be there to answer your 2 AM calls, hype you up, listen to your rants, and celebrate all your future victories with you!')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow transition-all active:scale-95 flex items-center justify-center gap-1.5">
+              <span>Unwrap Gift</span> <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <div class="mt-8 text-center">
+          <button onclick="switchPage('main')" class="text-xs font-bold text-sky-600 hover:underline inline-flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back To Celebration Studio
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simple Footer -->
+    <footer class="text-center text-xs text-slate-400 mt-12">
+      Designed with 💙 for the best homie ever ✨
+    </footer>
+  </div>
+
+  <!-- Gift Unboxing Modal Popup -->
+  <div id="giftModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl relative animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+        🎁
+      </div>
+      <h3 id="modalGiftTitle" class="font-heading text-xl font-bold text-slate-800 mb-2">Gift Opened!</h3>
+      <p id="modalGiftBody" class="text-slate-600 text-sm mb-6 leading-relaxed">Gift details appear here.</p>
+      
+      <button onclick="closeGiftModal()" class="w-full py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-2xl text-sm transition-all shadow">
+        Awesome, Thanks! 💙
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // --- 1. LOGIN HANDLER ---
+    function handleLogin(event) {
+      event.preventDefault();
+      const input = document.getElementById('passkeyInput').value;
+      const errorMsg = document.getElementById('loginError');
+
+      if (input.trim().toLowerCase() === 'homie') {
+        unlockSite();
+      } else {
+        errorMsg.classList.remove('hidden');
+      }
+    }
+
+    function quickUnlock() {
+      unlockSite();
+    }
+
+    function unlockSite() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      triggerConfetti();
+    }
+
+    // --- 2. PAGE NAVIGATION (MAIN vs MEMORIES vs GIFTS) ---
+    function switchPage(page) {
+      const mainPage = document.getElementById('pageMain');
+      const memoriesPage = document.getElementById('pageMemories');
+      const giftsPage = document.getElementById('pageGifts');
+      
+      const navMainBtn = document.getElementById('navMainBtn');
+      const navMemoriesBtn = document.getElementById('navMemoriesBtn');
+      const navGiftsBtn = document.getElementById('navGiftsBtn');
+
+      // Hide all pages first
+      mainPage.classList.add('hidden');
+      memoriesPage.classList.add('hidden');
+      giftsPage.classList.add('hidden');
+
+      // Reset button styles
+      const activeStyle = "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-blue-600 text-white shadow-sm";
+      const inactiveStyle = "px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-600 hover:text-blue-600 transition-all";
+
+      navMainBtn.className = inactiveStyle;
+      navMemoriesBtn.className = inactiveStyle;
+      navGiftsBtn.className = inactiveStyle;
+
+      if (page === 'gifts') {
+        giftsPage.classList.remove('hidden');
+        navGiftsBtn.className = activeStyle;
+        triggerConfetti();
+      } else if (page === 'memories') {
+        memoriesPage.classList.remove('hidden');
+        navMemoriesBtn.className = activeStyle;
+      } else {
+        mainPage.classList.remove('hidden');
+        navMainBtn.className = activeStyle;
+      }
+    }
+
+    // --- 3. CAKE BUILDER STATE & LOGIC ---
+    let currentSponge = '#bfdbfe';
+    let currentFrosting = '#38bdf8';
+    let currentTopping = '👑';
+
+    function setCakeFlavor(name, bottomColor, topColor) {
+      currentSponge = bottomColor;
+      document.getElementById('previewBottomLayer').style.backgroundColor = bottomColor;
+    }
+
+    function setFrosting(color) {
+      currentFrosting = color;
+      document.getElementById('previewTopLayer').style.backgroundColor = color;
+      
+      // Update Drips
+      ['previewDrip1', 'previewDrip2', 'previewDrip3', 'previewDrip4'].forEach(id => {
+        document.getElementById(id).style.backgroundColor = color;
+      });
+    }
+
+    function setTopping(emoji) {
+      currentTopping = emoji;
+      document.getElementById('previewToppingIcon').innerText = emoji;
+    }
+
+    function finishBakingCake() {
+      // Transfer custom values to baked candle cake
+      document.getElementById('bakedBottomLayer').style.backgroundColor = currentSponge;
+      document.getElementById('bakedTopLayer').style.backgroundColor = currentFrosting;
+      
+      ['bakedDrip1', 'bakedDrip2', 'bakedDrip3', 'bakedDrip4'].forEach(id => {
+        document.getElementById(id).style.backgroundColor = currentFrosting;
+      });
+
+      document.getElementById('bakedToppingIcon').innerText = currentTopping;
+
+      // Swap views
+      document.getElementById('cakeBuilderMode').classList.add('hidden');
+      document.getElementById('candleBlowMode').classList.remove('hidden');
+
+      // Reset flames
+      const flames = document.querySelectorAll('.flame');
+      flames.forEach(f => f.style.display = 'block');
+      blownOutCount = 0;
+      document.getElementById('wishMessage').classList.add('hidden');
+
+      triggerConfetti();
+    }
+
+    function rebakeCake() {
+      document.getElementById('candleBlowMode').classList.add('hidden');
+      document.getElementById('cakeBuilderMode').classList.remove('hidden');
+    }
+
+    // --- 4. CANDLE BLOWING LOGIC ---
+    let blownOutCount = 0;
+    const totalCandles = 3;
+
+    function toggleCandle(candleElement) {
+      const flame = candleElement.querySelector('.flame');
+      if (flame && flame.style.display !== 'none') {
+        flame.style.display = 'none';
+        blownOutCount++;
+        checkCandles();
+      }
+    }
+
+    function blowAllCandles() {
+      const flames = document.querySelectorAll('.flame');
+      flames.forEach(f => f.style.display = 'none');
+      blownOutCount = totalCandles;
+      checkCandles();
+    }
+
+    function checkCandles() {
+      if (blownOutCount >= totalCandles) {
+        document.getElementById('wishMessage').classList.remove('hidden');
+        triggerConfetti();
+      }
+    }
+
+    // --- 5. GIFT MODAL ---
+    function openGiftModal(title, body) {
+      document.getElementById('modalGiftTitle').innerText = title;
+      document.getElementById('modalGiftBody').innerText = body;
+      document.getElementById('giftModal').classList.remove('hidden');
+      triggerConfetti();
+    }
+
+    function closeGiftModal() {
+      document.getElementById('giftModal').classList.add('hidden');
+    }
+
+    // --- 6. QUOTE GENERATOR FOR TIMELINE PAGE ---
+    const quotes = [
+      "\"A good friend knows all your best stories, but a best friend has lived them with you!\"",
+      "\"Real friendship is when you walk into their house and your Wi-Fi connects automatically.\"",
+      "\"Side by side or miles apart, real homies are always close at heart.\"",
+      "\"Thanks for being the person who makes me laugh when I don't even want to smile.\""
+    ];
+    let quoteIndex = 0;
+
+    function nextQuote() {
+      quoteIndex = (quoteIndex + 1) % quotes.length;
+      document.getElementById('quoteDisplay').innerText = quotes[quoteIndex];
+    }
+
+    // --- 7. AUDIO MELODY SYNTHESIZER ---
+    let audioCtx = null;
+    let isPlaying = false;
+    let melodyTimeout = null;
+
+    const notes = [
+      { note: 261.63, duration: 0.4 }, // C4
+      { note: 261.63, duration: 0.4 }, // C4
+      { note: 293.66, duration: 0.8 }, // D4
+      { note: 261.63, duration: 0.8 }, // C4
+      { note: 349.23, duration: 0.8 }, // F4
+      { note: 329.63, duration: 1.2 }, // E4
+      { note: 261.63, duration: 0.4 }, // C4
+      { note: 261.63, duration: 0.4 }, // C4
+      { note: 293.66, duration: 0.8 }, // D4
+      { note: 261.63, duration: 0.8 }, // C4
+      { note: 392.00, duration: 0.8 }, // G4
+      { note: 349.23, duration: 1.2 }, // F4
+    ];
+
+    function playNote(freq, duration, startTime) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0.08, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration - 0.05);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+
+    function playMelody() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      let currentTime = audioCtx.currentTime;
+      let totalDuration = 0;
+
+      notes.forEach(({ note, duration }) => {
+        playNote(note, duration, currentTime + totalDuration);
+        totalDuration += duration;
+      });
+
+      melodyTimeout = setTimeout(() => {
+        if (isPlaying) playMelody();
+      }, totalDuration * 1000 + 400);
+    }
+
+    document.getElementById('musicToggleBtn').addEventListener('click', () => {
+      const musicText = document.getElementById('musicText');
+      if (!isPlaying) {
+        isPlaying = true;
+        musicText.innerText = "Pause Music";
+        playMelody();
+      } else {
+        isPlaying = false;
+        musicText.innerText = "Play Music";
+        clearTimeout(melodyTimeout);
+      }
+    });
+
+    // --- 8. CONFETTI BURST ---
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 70,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#38bdf8', '#2563eb', '#6366f1', '#38bdf8']
+        });
+      }
+    }
+  </script>
+</body>
+</html>
